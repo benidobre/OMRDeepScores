@@ -18,7 +18,7 @@ class class_dataset_reader:
     batch_offset = 0
     epochs_completed = 0
 
-    def __init__(self, records_list, seed = 444, split = 0.2, min_nr = 2, one_hot=True):
+    def __init__(self, records_list, seed = 444, split = 0.2, min_nr = 2, one_hot=False):
         """
         Initialize a file reader for the DeepScores classification data
         :param records_list: path to the dataset
@@ -87,15 +87,17 @@ class class_dataset_reader:
         self.annotations = self.annotations[train_indices]
 
         # Shuffle the data
-        perm = np.arange(self.images.shape[0])
-        np.random.seed(self.seed)
-        np.random.shuffle(perm)
-        self.images = self.images[perm]
-        self.annotations = self.annotations[perm]
+        # perm = np.arange(self.images.shape[0])
+        # np.random.seed(self.seed)
+        # np.random.shuffle(perm)
+        # self.images = self.images[perm]
+        # self.annotations = self.annotations[perm]
 
         # Reshape to fit Tensorflow
-        self.images = np.expand_dims(self.images, -1)
-        self.test_images = np.expand_dims(self.test_images, -1)
+        self.images = self.images/255
+        self.test_images = self.test_images/255
+        self.images = np.expand_dims(self.images, axis=3)
+        self.test_images = np.expand_dims(self.test_images, axis=3)
 
         if sum(np.unique(self.annotations) != np.unique(self.test_annotations)) != 0:
             print("NOT THE SAME CLASSES IN TRAIN AND TEST - EXITING")
@@ -143,6 +145,12 @@ class class_dataset_reader:
 
     def get_records(self):
         return self.images, self.annotations
+
+    def clear(self):
+        self.images = None
+        self.annotations = None
+        del self.images
+        del self.annotations
 
     def reset_batch_offset(self, offset=0):
         self.batch_offset = offset
